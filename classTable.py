@@ -19,6 +19,7 @@ with open(LOCAL, encoding='utf-8') as fp:
     FILE_IN = json.load(fp)
     data = FILE_IN['schedules']
     schedule = FILE_IN['times']
+    names = FILE_IN['names']
 
 text_size = 75
 
@@ -58,9 +59,8 @@ def get_now_min():
 
 def current_class():
     n = get_now_min()
-    print(n)
     for i, (start, end) in enumerate(schedule):
-        if start <= n and n < end:
+        if start <= n < end:
             color = 'green'
         elif n >= end:
             color = 'gray'
@@ -86,25 +86,22 @@ def display_class():
     y = 0.1*wh
     wkd = datetime.now().weekday()
     for i, j in enumerate(data[wkd]):
+        cls = names[i]
         clr = 'black'
-        if i > 8:
-            cls = ' '
-        elif i == 4:
-            cls = ' '
+        if i == 5:
             clr = 'red'
-        elif i > 4:
-            cls = str(i)
-        else:
-            cls = str(i+1)
         cls += ' '
-        if i == 2 or i == 7:
-            y += text_size*1.1
-        texts.append(c.create_text(ww//2, y, text=cls + j,
-                                   fill=clr, font=f"Kaiti {text_size}"))
+        texts.append(c.create_text(
+            ww//2,
+            y,
+            text=cls + j,
+            fill=clr,
+            font=f"Kaiti {text_size}"
+        )
+        )
         y += text_size*1.1
 
 
 current_class()
-display_class()
 root.bind('<r>', lambda _: refresh())
 root.mainloop()
