@@ -1,12 +1,12 @@
 '''
-Copyright (c) 2026 zhilin.tang@qq.com. All right reserved.
+Copyright (c) 2026-2027 zhilin.tang@qq.com.
 我把课表文件放到了我的网站上
 这是联网加载的课程表
 足够炒掉任何在黑板上每天写课表的人
 '''
 import requests as rq
 import json
-from tkinter import Tk, Canvas, Button, Frame
+from tkinter import Tk, Canvas, Button, Toplevel
 from time import localtime
 from datetime import datetime, timedelta
 import sys
@@ -20,8 +20,9 @@ with open(LOCAL, encoding='utf-8') as fp:
     data = FILE_IN['schedules']
     schedule = FILE_IN['times']
     names = FILE_IN['names']
-
+zk = datetime(2027, 6, 21)
 text_size = 75
+d = datetime
 
 
 def refresh():
@@ -69,9 +70,9 @@ def current_class():
 
         c.create_rectangle(
             (ww-3*text_size)/2,
-            (i*1.1-0.5)*text_size+0.1*wh,
+            (i*1.1-0.52)*text_size+0.1*wh,
             (ww+3*text_size)/2,
-            (i*1.1+0.5)*text_size+0.1*wh,
+            (i*1.1+0.52)*text_size+0.1*wh,
             outline=color, fill=color
         )
         c.update()
@@ -101,6 +102,46 @@ def display_class():
         )
         y += text_size*1.1
 
+
+def school_day(day: datetime) -> bool:
+    if day.weekday() > 4:
+        return False
+    elif (d(2026, 7, 15) <= day <= d(2026, 8, 31)) or (d(2027, 1, 15) <= day <= d(2027, 2, 28)):
+        return False
+    if (day.year == datetime.now().year):
+        holiday = rq.get(
+            f'https://publicapi.xiaoai.me/holiday/day?date={str(day)[:10]}')
+        # type:ignore
+        return json.loads(holiday.content)["data"][0]['rest'] == 0
+    else:
+        return True
+
+
+def get_days_school():
+    s = 0
+    i = datetime(datetime.now().year, datetime.now().month, datetime.now().day)
+    while i <= zk:
+        if school_day(i):
+            s += 1
+        i += timedelta(days=1)
+    return s
+
+
+t_ww = w_w-ww
+t_wh = 50
+
+timeDown = Toplevel(root)
+timeDown.geometry(f'{t_ww}x{t_wh}+0+0')
+timeDown.overrideredirect(True)
+timeDown.resizable(False, False)
+t_c = Canvas(timeDown, width=t_ww, height=t_wh)
+t_c.pack()
+td_text1 = '距中考还有     天，在校     天'
+days_all = (zk-datetime.now()).days
+days_school = get_days_school()
+td_text2 = f'           {days_all:03}          {days_school:03}'
+t_c.create_text(0, 0, text=td_text1, fill='black', anchor='nw')
+t_c.create_text(0, 0, text=td_text2, fill='red', anchor='nw')
 
 current_class()
 root.bind('<r>', lambda _: refresh())
