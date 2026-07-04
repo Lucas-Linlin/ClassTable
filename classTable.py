@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 import sys
 from pathlib import Path
 
+holidays = json.loads(rq.get(
+    f'https://publicapi.xiaoai.me/holiday/year?date={str(datetime.now().year)}').content)
 
 URL = 'https://qiihmzijbqinlnfnkhrg.supabase.co/storage/v1/object/public/schedule/class.json'
 LOCAL = Path(__file__).parent / 'class.json'
@@ -108,12 +110,7 @@ def school_day(day: datetime) -> bool:
         return False
     elif (d(2026, 7, 15) <= day <= d(2026, 8, 31)) or (d(2027, 1, 15) <= day <= d(2027, 2, 28)):
         return False
-    if (day.year == datetime.now().year):
-        holiday = rq.get(
-            f'https://publicapi.xiaoai.me/holiday/day?date={str(day)[:10]}')
-        # type:ignore
-        return json.loads(holiday.content)["data"][0]['rest'] == 0
-    else:
+    if (day.year != datetime.now().year):
         return True
 
 
@@ -124,6 +121,9 @@ def get_days_school():
         if school_day(i):
             s += 1
         i += timedelta(days=1)
+    for j in holidays['data']:
+        if str(i)[:10] == j['date']:
+            s -= j['rest']
     return s
 
 
@@ -140,8 +140,16 @@ td_text1 = '距中考还有     天，在校     天'
 days_all = (zk-datetime.now()).days
 days_school = get_days_school()
 td_text2 = f'           {days_all:03}          {days_school:03}'
-t_c.create_text(0, 0, text=td_text1, fill='black', anchor='nw')
-t_c.create_text(0, 0, text=td_text2, fill='red', anchor='nw')
+t_c.create_text(0, 0,
+                text=td_text1,
+                fill='black',
+                anchor='nw',
+                font=f'Kaiti {text_size//2}')
+t_c.create_text(0, 0,
+                text=td_text2,
+                fill='red',
+                anchor='nw',
+                font=f'Kaiti {text_size//2}')
 
 current_class()
 root.bind('<r>', lambda _: refresh())
