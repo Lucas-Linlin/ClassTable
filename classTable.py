@@ -11,17 +11,199 @@ from time import localtime
 from datetime import datetime, timedelta
 import sys
 from pathlib import Path
-
+_HARD_CODE = '''{
+    "schedules": [
+        [
+            "数",
+            "语",
+            "",
+            "英",
+            "物",
+            "",
+            "道",
+            "",
+            "数",
+            "语",
+            "物",
+            "英"
+        ],
+        [
+            "英",
+            "语",
+            "",
+            "数",
+            "物",
+            "",
+            "历",
+            "",
+            "物",
+            "语",
+            "物",
+            "语"
+        ],
+        [
+            "数",
+            "语",
+            "",
+            "英",
+            "数",
+            "",
+            "数",
+            "",
+            "语",
+            "数",
+            "物",
+            "物"
+        ],
+        [
+            "物",
+            "英",
+            "",
+            "语",
+            "数",
+            "",
+            "语",
+            "",
+            "数",
+            "英",
+            "数",
+            "英"
+        ],
+        [
+            "英",
+            "语",
+            "",
+            "物",
+            "道",
+            "",
+            "历",
+            "",
+            "数",
+            "数",
+            "数",
+            "语"
+        ],
+        [
+            "英",
+            "语",
+            "",
+            "数",
+            "物",
+            "",
+            "历",
+            "",
+            "物",
+            "语",
+            "物",
+            "语"
+        ],
+        [
+            "英",
+            "语",
+            "",
+            "数",
+            "物",
+            "",
+            "历",
+            "",
+            "物",
+            "语",
+            "物",
+            "语"
+        ]
+    ],
+    "names": [
+        "1",
+        "2",
+        "",
+        "3",
+        "4",
+        "考",
+        "6",
+        "",
+        "7",
+        "8",
+        "1",
+        "2"
+    ],
+    "times": [
+        [
+            480,
+            520
+        ],
+        [
+            535,
+            575
+        ],
+        [
+            575,
+            605
+        ],
+        [
+            605,
+            645
+        ],
+        [
+            660,
+            700
+        ],
+        [
+            730,
+            770
+        ],
+        [
+            770,
+            865
+        ],
+        [
+            865,
+            895
+        ],
+        [
+            895,
+            935
+        ],
+        [
+            950,
+            985
+        ],
+        [
+            990,
+            1045
+        ],
+        [
+            1050,
+            1110
+        ]
+    ]
+}'''
 holidays = json.loads(rq.get(
     f'https://publicapi.xiaoai.me/holiday/year?date={str(datetime.now().year)}').content)
 
 URL = 'https://qiihmzijbqinlnfnkhrg.supabase.co/storage/v1/object/public/schedule/class.json'
 LOCAL = Path(__file__).parent / 'class.json'
-with open(LOCAL, encoding='utf-8') as fp:
-    FILE_IN = json.load(fp)
-    data = FILE_IN['schedules']
-    schedule = FILE_IN['times']
-    names = FILE_IN['names']
+try:
+    with open(LOCAL, encoding='utf-8') as fp:
+        FILE_IN = json.load(fp)
+        data = FILE_IN['schedules']
+        schedule = FILE_IN['times']
+        names = FILE_IN['names']
+except FileNotFoundError:
+    try:
+        r = rq.get(URL)
+        data = json.loads(r.content)
+        with open(LOCAL, encoding='utf-8', mode='w') as fp:
+            json.dump(data, fp, ensure_ascii=False, indent=4)
+    except:
+        with open(LOCAL, encoding='utf-8', mode='w') as fp:
+            fp.write(_HARD_CODE)
+    with open(LOCAL, encoding='utf-8') as fp:
+        FILE_IN = json.load(fp)
+        data = FILE_IN['schedules']
+        schedule = FILE_IN['times']
+        names = FILE_IN['names']
+
+
 zk = datetime(2027, 6, 21)
 text_size = 75
 d = datetime
@@ -110,7 +292,7 @@ def school_day(day: datetime) -> bool:
         return False
     elif (d(2026, 7, 15) <= day <= d(2026, 8, 31)) or (d(2027, 1, 15) <= day <= d(2027, 2, 28)):
         return False
-    if (day.year != datetime.now().year):
+    else:
         return True
 
 
@@ -121,9 +303,11 @@ def get_days_school():
         if school_day(i):
             s += 1
         i += timedelta(days=1)
+    i = datetime(datetime.now().year, datetime.now().month, datetime.now().day)
     for j in holidays['data']:
-        if str(i)[:10] == j['date']:
+        if str(i)[:10] == j['date'] and i <= d(2027, 6, 21):
             s -= j['rest']
+        i += timedelta(1)
     return s
 
 
