@@ -1,9 +1,9 @@
-'''
+"""
 Copyright (c) 2026-2027 zhilin.tang@qq.com.
 我把课表文件放到了我的网站上
 这是联网加载的课程表
 足够炒掉任何在黑板上每天写课表的人
-'''
+"""
 import requests as rq
 import json
 from tkinter import Tk, Canvas, Button, Toplevel
@@ -11,107 +11,9 @@ from time import localtime
 from datetime import datetime, timedelta
 import sys
 from pathlib import Path
-_HARD_CODE = '''{
-    "schedules": [
-        [
-            "数",
-            "语",
-            "",
-            "英",
-            "物",
-            "",
-            "道",
-            "",
-            "数",
-            "语",
-            "物",
-            "英"
-        ],
-        [
-            "英",
-            "语",
-            "",
-            "数",
-            "物",
-            "",
-            "历",
-            "",
-            "物",
-            "语",
-            "物",
-            "语"
-        ],
-        [
-            "数",
-            "语",
-            "",
-            "英",
-            "数",
-            "",
-            "数",
-            "",
-            "语",
-            "数",
-            "物",
-            "物"
-        ],
-        [
-            "物",
-            "英",
-            "",
-            "语",
-            "数",
-            "",
-            "语",
-            "",
-            "数",
-            "英",
-            "数",
-            "英"
-        ],
-        [
-            "英",
-            "语",
-            "",
-            "物",
-            "道",
-            "",
-            "历",
-            "",
-            "数",
-            "数",
-            "数",
-            "语"
-        ],
-        [
-            "英",
-            "语",
-            "",
-            "数",
-            "物",
-            "",
-            "历",
-            "",
-            "物",
-            "语",
-            "物",
-            "语"
-        ],
-        [
-            "英",
-            "语",
-            "",
-            "数",
-            "物",
-            "",
-            "历",
-            "",
-            "物",
-            "语",
-            "物",
-            "语"
-        ]
-    ],
+
+_HARD_CODE = """{
+    
     "names": [
         "1",
         "2",
@@ -176,9 +78,12 @@ _HARD_CODE = '''{
             1110
         ]
     ]
-}'''
-holidays = json.loads(rq.get(
-    f'https://publicapi.xiaoai.me/holiday/year?date={str(datetime.now().year)}').content)
+}"""
+holidays = json.loads(
+    rq.get(
+        f'https://publicapi.xiaoai.me/holiday/year?date={str(datetime.now().year)}'
+    ).content
+)
 
 URL = 'https://qiihmzijbqinlnfnkhrg.supabase.co/storage/v1/object/public/schedule/class.json'
 LOCAL = Path(__file__).parent / 'class.json'
@@ -188,6 +93,7 @@ try:
         data = FILE_IN['schedules']
         schedule = FILE_IN['times']
         names = FILE_IN['names']
+        formats = FILE_IN['formats']
 except FileNotFoundError:
     try:
         r = rq.get(URL)
@@ -202,11 +108,7 @@ except FileNotFoundError:
         data = FILE_IN['schedules']
         schedule = FILE_IN['times']
         names = FILE_IN['names']
-
-
-zk = datetime(2027, 6, 21)
-text_size = 75
-d = datetime
+        formats = FILE_IN['formats']
 
 
 def refresh():
@@ -222,8 +124,16 @@ root = Tk()
 
 w_w = root.winfo_screenwidth()
 w_h = root.winfo_screenheight()
-ww = 200
+ww = int(w_w / 16.7)
 wh = w_h
+
+zk = datetime(2027, 6, 21)
+text_size = int(w_w / 50.2)
+
+rect_h = 0.59  # * 2 * text_size
+
+text_offset_y = 1.25
+d = datetime
 
 root.geometry(f'{ww}x{wh}+{w_w-ww}+0')
 root.overrideredirect(True)
@@ -231,15 +141,15 @@ root.resizable(False, False)
 root.grid_columnconfigure(0, weight=1)
 
 
-c = Canvas(root, width=ww, height=wh-200)
+c = Canvas(root, width=ww, height=wh - 200)
 c.pack()
-Button(root, text="关闭", command=root.quit).pack(fill='x')
+Button(root, text='关闭', command=root.quit).pack(fill='x')
 texts = []
 
 
 def get_now_min():
     a = localtime()
-    return a.tm_hour*60+a.tm_min
+    return a.tm_hour * 60 + a.tm_min
 
 
 def current_class():
@@ -253,11 +163,12 @@ def current_class():
             color = 'white'
 
         c.create_rectangle(
-            (ww-3*text_size)/2,
-            (i*1.1-0.52)*text_size+0.1*wh,
-            (ww+3*text_size)/2,
-            (i*1.1+0.52)*text_size+0.1*wh,
-            outline=color, fill=color
+            0,
+            (i * text_offset_y - rect_h) * text_size + 0.1 * wh,
+            ww,
+            (i * text_offset_y + rect_h) * text_size + 0.1 * wh,
+            outline=color,
+            fill=color,
         )
         c.update()
 
@@ -268,29 +179,26 @@ def current_class():
 def display_class():
     for i in texts:
         c.delete(i)
-    y = 0.1*wh
+    y = 0.1 * wh
     wkd = datetime.now().weekday()
     for i, j in enumerate(data[wkd]):
         cls = names[i]
-        clr = 'black'
-        if i == 5:
-            clr = 'red'
-        cls += ' '
-        texts.append(c.create_text(
-            ww//2,
-            y,
-            text=cls + j,
-            fill=clr,
-            font=f"Kaiti {text_size}"
+        clr = '#'+formats[i]['fg']
+        cls += ' ' if cls else ''
+        texts.append(
+            c.create_text(
+                ww//2, y, text=cls + j, fill=clr, font=f'Kaiti {text_size}'
+            )
         )
-        )
-        y += text_size*1.1
+        y += text_size * text_offset_y
 
 
 def school_day(day: datetime) -> bool:
     if day.weekday() > 4:
         return False
-    elif (d(2026, 7, 15) <= day <= d(2026, 8, 31)) or (d(2027, 1, 15) <= day <= d(2027, 2, 28)):
+    elif (d(2026, 7, 15) <= day <= d(2026, 8, 31)) or (
+        d(2027, 1, 15) <= day <= d(2027, 2, 28)
+    ):
         return False
     else:
         return True
@@ -311,8 +219,8 @@ def get_days_school():
     return s
 
 
-t_ww = w_w-ww
-t_wh = 50
+t_ww = w_w - ww
+t_wh = int(w_h / 43.2)
 
 timeDown = Toplevel(root)
 timeDown.geometry(f'{t_ww}x{t_wh}+0+0')
@@ -321,19 +229,25 @@ timeDown.resizable(False, False)
 t_c = Canvas(timeDown, width=t_ww, height=t_wh)
 t_c.pack()
 td_text1 = '距中考还有     天，在校     天'
-days_all = (zk-datetime.now()).days
+days_all = (zk - datetime.now()).days
 days_school = get_days_school()
-td_text2 = f'           {days_all:03}          {days_school:03}'
-t_c.create_text(0, 0,
-                text=td_text1,
-                fill='black',
-                anchor='nw',
-                font=f'Kaiti {text_size//2}')
-t_c.create_text(0, 0,
-                text=td_text2,
-                fill='red',
-                anchor='nw',
-                font=f'Kaiti {text_size//2}')
+td_text2 = f'        {days_all:03}          {days_school:03}'
+t_c.create_text(
+    t_ww / 2,
+    0,
+    text=td_text1,
+    fill='black',
+    anchor='n',
+    font=f'Kaiti {text_size//2}',
+)
+t_c.create_text(
+    t_ww / 2,
+    0,
+    text=td_text2,
+    fill='red',
+    anchor='n',
+    font=f'Kaiti {text_size//2}',
+)
 
 current_class()
 root.bind('<r>', lambda _: refresh())
