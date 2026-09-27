@@ -1,0 +1,47 @@
+.text-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body {
+    background: #bfe8ff;
+}
+
+h1 {
+    margin: 100px auto;
+    font-size: 63px;
+    color: rgb(31, 96, 175);
+}
+
+p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+}
+
+h2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #005097;
+    font-size: 48px;
+}
+
+div#top-download {
+    width: 250px;
+    height: 100px;
+    background: #005097;
+    color: #e2e2e2;
+    border-radius: 15px;
+    font-family: 黑体;
+    font-weight: 900;
+    font-size: 36px;
+}
+
+div#box-top-download {
+    width:auto;
+    height: 500px;
+    padding:50px;
+}

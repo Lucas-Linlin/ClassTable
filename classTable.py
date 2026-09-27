@@ -87,13 +87,24 @@ holidays = json.loads(
 
 URL = 'https://qiihmzijbqinlnfnkhrg.supabase.co/storage/v1/object/public/schedule/class.json'
 LOCAL = Path(__file__).parent / 'class.json'
+
+
+def setvalue(FILE_IN:dict):
+    global data, schedule, names, formats, before, now, after
+    data = FILE_IN['schedules']
+    schedule = FILE_IN['times']
+    names = FILE_IN['names']
+    formats = FILE_IN.get('formats',[
+        {'fg': '000000'} for _ in range(len(names))])
+    before = FILE_IN.get('before','white')
+    now = FILE_IN.get('now','green')
+    after = FILE_IN.get('after','gray')
+
+
 try:
     with open(LOCAL, encoding='utf-8') as fp:
         FILE_IN = json.load(fp)
-        data = FILE_IN['schedules']
-        schedule = FILE_IN['times']
-        names = FILE_IN['names']
-        formats = FILE_IN['formats']
+        setvalue(FILE_IN)
 except FileNotFoundError:
     try:
         r = rq.get(URL)
@@ -105,10 +116,7 @@ except FileNotFoundError:
             fp.write(_HARD_CODE)
     with open(LOCAL, encoding='utf-8') as fp:
         FILE_IN = json.load(fp)
-        data = FILE_IN['schedules']
-        schedule = FILE_IN['times']
-        names = FILE_IN['names']
-        formats = FILE_IN['formats']
+        setvalue(FILE_IN)
 
 
 def refresh():
@@ -156,11 +164,11 @@ def current_class():
     n = get_now_min()
     for i, (start, end) in enumerate(schedule):
         if start <= n < end:
-            color = 'green'
+            color = now
         elif n >= end:
-            color = 'gray'
+            color = after
         else:
-            color = 'white'
+            color = before
 
         c.create_rectangle(
             0,
@@ -183,7 +191,7 @@ def display_class():
     wkd = datetime.now().weekday()
     for i, j in enumerate(data[wkd]):
         cls = names[i]
-        clr = '#'+formats[i]['fg']
+        clr = ('#'+formats[i]['fg']) if formats[i]['fg'] else '#000000'
         cls += ' ' if cls else ''
         texts.append(
             c.create_text(

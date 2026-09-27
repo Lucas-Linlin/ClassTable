@@ -23,7 +23,12 @@ def check_high(code): pass
 WRITE = {
     "schedules": [],
     "names": [],
-    "formats": [],
+    "styles": {
+        "formats": [],
+        "before": 'white',
+        "now": 'green',
+        "after": 'gray'
+        },
     "times": []
 }
 
@@ -69,9 +74,22 @@ if BASE_MODE:
                 elif isinstance(fg.rgb, str):
                     cl = fg.rgb[2:]
                 elif fg.type == 'theme':
-                    cl = None
+                    cl = {
+                        0: 'E0E0E0',
+                        1: '000000',
+                        2: 'DBDADA',
+                        3: '4B5C74',
+                        4: '4B7DD5',
+                        5: 'FF8937',
+                        6: 'B4B4B4',
+                        7: 'FFD001',
+                        8: '64A9E7',
+                        9: '7BBC4E',
+                    }[fg.theme]
 
             WRITE['formats'].append({'fg': cl if cl else '000000'})
+
+        WRITE['before'] = sheet_data.iloc[]
 
 
 with open(OUTPUT, 'w', encoding='utf-8') as fp:
