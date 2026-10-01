@@ -85,20 +85,23 @@ holidays = json.loads(
     ).content
 )
 
-URL = 'https://qiihmzijbqinlnfnkhrg.supabase.co/storage/v1/object/public/schedule/class.json'
+
 LOCAL = Path(__file__).parent / 'class.json'
 
 
-def setvalue(FILE_IN:dict):
-    global data, schedule, names, formats, before, now, after
+def setvalue(FILE_IN: dict):
+    global data, schedule, names, formats, before, now, after, URL
     data = FILE_IN['schedules']
     schedule = FILE_IN['times']
     names = FILE_IN['names']
-    formats = FILE_IN.get('formats',[
+    STYLES = FILE_IN['styles']
+    formats = STYLES.get('formats', [
         {'fg': '000000'} for _ in range(len(names))])
-    before = FILE_IN.get('before','white')
-    now = FILE_IN.get('now','green')
-    after = FILE_IN.get('after','gray')
+    before = '#'+STYLES.get('before', 'FFFFFF')
+    now = '#'+STYLES.get('now', '008000')
+    after = '#'+STYLES.get('after', '757171')
+    URL = FILE_IN.get(
+        'url', 'https://qiihmzijbqinlnfnkhrg.supabase.co/storage/v1/object/public/schedule/class.json')
 
 
 try:
@@ -191,8 +194,9 @@ def display_class():
     wkd = datetime.now().weekday()
     for i, j in enumerate(data[wkd]):
         cls = names[i]
-        clr = ('#'+formats[i]['fg']) if formats[i]['fg'] else '#000000'
-        cls += ' ' if cls else ''
+        clr = '#' + formats.get(str(i), '000000')
+        if cls:
+            cls += ' '
         texts.append(
             c.create_text(
                 ww//2, y, text=cls + j, fill=clr, font=f'Kaiti {text_size}'

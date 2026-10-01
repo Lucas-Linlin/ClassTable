@@ -74,7 +74,7 @@ WRITE = {
     "schedules": [],
     "names": [],
     "styles": {
-        "formats": [],
+        "formats": {},
         "before": 'white',
         "now": 'green',
         "after": 'gray'
@@ -96,6 +96,35 @@ def intx(x, y):
 code = str(sheet_data.iloc[0, 18])
 check_code(code)
 
+
+def get_fill_color(name, none='000000'):
+    cl = None
+    fill = sheet_style[name].fill  # type:ignore
+    if fill.fill_type != 'solid':
+        cl = None
+        print(0)
+    else:
+        fg = fill.fgColor
+        if not fg:
+            cl = None
+        elif isinstance(fg.rgb, str):
+            cl = fg.rgb[2:]
+        elif fg.type == 'theme':
+            cl = {
+                0: 'E0E0E0',
+                1: '000000',
+                2: 'DBDADA',
+                3: '4B5C74',
+                4: '4B7DD5',
+                5: 'FF8937',
+                6: 'B4B4B4',
+                7: 'FFD001',
+                8: '64A9E7',
+                9: '7BBC4E',
+            }[fg.theme]
+    return cl if cl else none
+
+
 if BASE_MODE:
 
     j = 2
@@ -115,34 +144,11 @@ if BASE_MODE:
     if HIGH_MODE:
 
         for x in range(4, j+1):
-            cl = None
-            fill = sheet_style[f'N{x}'].fill  # type:ignore
-            if fill.fill_type != 'solid':
-                cl = None
-                print(0)
-            else:
-                fg = fill.fgColor
-                if not fg:
-                    cl = None
-                elif isinstance(fg.rgb, str):
-                    cl = fg.rgb[2:]
-                elif fg.type == 'theme':
-                    cl = {
-                        0: 'E0E0E0',
-                        1: '000000',
-                        2: 'DBDADA',
-                        3: '4B5C74',
-                        4: '4B7DD5',
-                        5: 'FF8937',
-                        6: 'B4B4B4',
-                        7: 'FFD001',
-                        8: '64A9E7',
-                        9: '7BBC4E',
-                    }[fg.theme]
+            WRITE[STYLES]['formats'][x-4] = get_fill_color(f'N{x}')
 
-            WRITE[STYLES]['formats'].append({'fg': cl if cl else '000000'})
-
-        # WRITE[STYLES]['before'] = sheet_data.iloc[]
+        WRITE[STYLES]['before'] = get_fill_color('O4', 'F2F2F2')
+        WRITE[STYLES]['now'] = get_fill_color('P4', '008000')
+        WRITE[STYLES]['after'] = get_fill_color('Q4', '757171')
 
 
 with open(OUTPUT, 'w', encoding='utf-8') as fp:

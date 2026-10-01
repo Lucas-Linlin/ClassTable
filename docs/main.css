@@ -41,9 +41,9 @@ div#top-download {
 }
 
 div#box-top-download {
-    width: 250px;
-    height: 250px;
-    padding: auto;
+    width: auto;
+    height: auto;
+    
     margin: auto;
-    background: radial-gradient(circle, rgb(57, 97, 255), #bfe8ff);
+    background: radial-gradient(circle closest-side, rgb(57, 97, 255), #bfe8ff);
 }
